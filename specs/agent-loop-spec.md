@@ -122,7 +122,15 @@ for tool_call in assistant_message.tool_calls:
 *The loop should stop when: (a) the LLM returns a response with no tool calls, OR (b) the MAX_TOOL_ROUNDS limit is reached. Describe how you will detect each condition and what you will return in each case.*
 
 ```
-[your answer here]
+(a) No tool calls: check if tool_calls on the response message is empty or None.
+    This is more reliable than checking finish_reason, which can vary by model/provider.
+
+  if not response.choices[0].message.tool_calls:
+      break  # no tool calls → return response.choices[0].message.content
+
+(b) MAX_TOOL_ROUNDS reached: track a counter incremented each iteration. If it
+    reaches MAX_TOOL_ROUNDS before the model stops calling tools, exit the loop
+    and return the last text response (or a fallback message if there is none).
 ```
 
 ---
@@ -132,7 +140,7 @@ for tool_call in assistant_message.tool_calls:
 *Once the loop exits because there are no more tool calls, how do you extract the text content from the response object? What field holds the string you should return?*
 
 ```
-[your answer here]
+response.choices[0].message.content
 ```
 
 ---
@@ -146,18 +154,38 @@ for tool_call in assistant_message.tool_calls:
 ```
 Query: "How should I care for my calathea?"
 Round 1 tool call: [tool name, args]
+ → Tool call: lookup_plant({'plant_name': 'calathea'})
+ ← Result: {"found": true, "plant": {"display_name": "Calathea", "scientific_name": "Calathea ornata", "aliases": ["prayer plant", ...
 Round 2 tool call: [tool name, args] (if any)
-Final response: [brief description]
+→ Tool call: get_seasonal_conditions(None)
+  ← Result: {"name": "Summer", "months": ["June", "July", "August"], "description": "Peak growing season. Most houseplants are at th...
+Final response: According to the care data for your calathea, to keep your plant happy and healthy, make sure to water it every 1-2 weeks, keeping the soil consistently moist but not soggy. It's also important to use filtered, distilled, or rainwater to prevent brown edges on the leaves. 
+
+Calatheas prefer low to medium indirect light, so it's best to avoid direct sunlight, which can bleach and damage the decorative leaf markings. They also require high humidity, so using a humidifier, misting frequently, or grouping with other plants can help.
+
+In terms of temperature, keep your calathea in an area with a consistent temperature between 60-80°F (15-27°C), and avoid cold drafts or temperatures below 55°F.
+
+As we are currently in summer, it's essential to increase humidity and water your calathea consistently. Keep it out of direct sun to prevent scorching, and consider fertilizing with a balanced fertilizer once a month. 
+
+If you notice any issues like brown leaf edges, leaf curling, or yellowing, adjust your care routine accordingly. Remember, calatheas can be fussy, so it's normal for them to require some adjustment time in a new home.
 ```
 
 **What happens when you ask about a plant that isn't in the database?**
 
 ```
-[describe the behavior you observed]
+How can I take care of my Basil plant?
+
+Response: I couldn't find any specific information on a plant named 'Basil' in my database. However, I can provide you with some general guidance on how to care for a Basil plant. Basil is typically a low-maintenance herb that requires well-draining soil, plenty of sunlight, and regular watering. It prefers warmer temperatures, between 60-70°F (15-21°C), and high humidity. You can fertilize your Basil plant regularly to promote healthy growth. If you have any more specific questions or concerns about your Basil plant, I'll do my best to help.
+
 ```
 
 **One thing about the tool call API that surprised you:**
 
 ```
-[your answer here]
+The tool call API is not handling consecutive questions well, just throws "Error".
+
+Fixed this issue with below change: 
+for msg in history:
+        if msg.get("content"):
+            messages.append({"role": msg["role"], "content": msg["content"]})
 ```

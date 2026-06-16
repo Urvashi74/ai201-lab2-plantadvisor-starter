@@ -70,7 +70,10 @@ likely match for clean user input. Aliases are the broadest net, so they go last
 *Aliases are stored as a list of strings. How will you check if the normalized input matches any alias in the list? Write your approach in pseudocode or plain English.*
 
 ```
-[your answer here]
+# O(n*m): n = number of plants, m = max aliases per plant
+for key, plant in _plant_db.items():
+    if normalized in [alias.lower() for alias in plant["aliases"]]:
+        return key, plant
 ```
 
 ---
@@ -80,7 +83,9 @@ likely match for clean user input. Aliases are the broadest net, so they go last
 *When a plant isn't found, the agent will read your message and use it to decide what to tell the user. Write the exact string you'll return — make it useful to the agent, not just to a human reading logs.*
 
 ```
-[your answer here]
+  f"No plant found matching '{name}'. Suggest the user try a
+  common name (e.g. 'pothos' instead of 'devil\\'s ivy') or
+  check spelling."
 ```
 
 ---
@@ -91,17 +96,17 @@ likely match for clean user input. Aliases are the broadest net, so they go last
 
 **Test: does `"devil's ivy"` return the pothos entry?**
 ```
-[yes / no — if no, describe what happened]
+yes
 ```
 
 **Test: does `"SNAKE PLANT"` return the snake plant entry?**
 ```
-[yes / no — if no, describe what happened]
+yes
 ```
 
 **One edge case you discovered while implementing:**
 ```
-[your answer here]
+Typo's that are not defined in the aliases, don't get recognised.
 ```
 
 ---
